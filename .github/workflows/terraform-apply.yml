@@ -1,0 +1,78 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'clients/*/infra/**'
+      - 'modules/**'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      clients: ${{ steps.detect.outputs.clients }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: detect
+        run: |
+          changed=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          if echo "$changed" | grep -q '^modules/'; then
+            clients=$(ls -d clients/*/ | xargs -n1 basename | grep -v '^_template$' | jq -R -s -c 'split("\n")[:-1]')
+          else
+            clients=$(echo "$changed" | grep -oE '^clients/[^/]+' | sed 's#clients/##' | grep -v '^_template$' | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          fi
+          echo "clients=$clients" >> "$GITHUB_OUTPUT"
+
+  apply:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.clients != '[]'
+    runs-on: ubuntu-latest
+    # GitHub Environment "prod" with Roman as required reviewer - blocks this job until approved.
+    environment: prod
+    env:
+      REGION: europe-west1
+    strategy:
+      matrix:
+        client: ${{ fromJson(needs.detect-changes.outputs.clients) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: clients/${{ matrix.client }}/infra
+        run: terraform init -backend-config=backend.hcl
+
+      # Ensures the Artifact Registry repo exists before we push an image into it.
+      - name: Terraform Apply (artifact registry only)
+        working-directory: clients/${{ matrix.client }}/infra
+        run: terraform apply -auto-approve -var-file=prod.tfvars -target=module.artifact_registry
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        id: image
+        run: |
+          image="${REGION}-docker.pkg.dev/rk-${{ matrix.client }}/app/svc:${{ github.sha }}"
+          docker build -f "clients/${{ matrix.client }}/backend/Dockerfile" -t "$image" "clients/${{ matrix.client }}"
+          docker push "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Terraform Apply
+        working-directory: clients/${{ matrix.client }}/infra
+        run: terraform apply -auto-approve -var-file=prod.tfvars -var="image=${{ steps.image.outputs.image }}"

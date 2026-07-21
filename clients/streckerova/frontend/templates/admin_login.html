@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>Přihlášení</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>Přihlášení</h1>
+  {{if .Error}}<p class="error">Špatné jméno nebo heslo.</p>{{end}}
+  <form method="post" action="/admin/login">
+    <label>Jméno <input type="text" name="username" required autofocus></label>
+    <label>Heslo <input type="password" name="password" required></label>
+    <button type="submit">Přihlásit</button>
+  </form>
+</body>
+</html>
