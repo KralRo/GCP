@@ -37,7 +37,9 @@ func main() {
 	app := &app{fs: fsClient, sessionSecret: []byte(os.Getenv("SESSION_SECRET"))}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	// NOT /healthz - that path is intercepted by Google's frontend on *.run.app
+	// domains and never reaches the container (returns a Google-branded 404).
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
