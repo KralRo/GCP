@@ -39,6 +39,14 @@ resource "google_project_iam_member" "runtime_datastore" {
   member  = "serviceAccount:${google_service_account.runtime.email}"
 }
 
+# Cloud Run deploys "as" the runtime SA, so the CI deployer needs actAs on it -
+# scoped to just this SA, not project-wide serviceAccountUser.
+resource "google_service_account_iam_member" "deployer_can_act_as_runtime" {
+  service_account_id = google_service_account.runtime.name
+  role                = "roles/iam.serviceAccountUser"
+  member              = "serviceAccount:${var.ci_deployer_service_account}"
+}
+
 # Signs the admin session cookie. Stored as a plain Cloud Run env var (visible in
 # Terraform state) rather than Secret Manager - acceptable for a single-editor admin
 # panel today; revisit if that changes.
@@ -69,7 +77,10 @@ module "cloud_run" {
     SESSION_SECRET        = random_password.session_secret.result
   }
 
-  depends_on = [google_project_iam_member.runtime_datastore]
+  depends_on = [
+    google_project_iam_member.runtime_datastore,
+    google_service_account_iam_member.deployer_can_act_as_runtime,
+  ]
 }
 
 module "firestore" {

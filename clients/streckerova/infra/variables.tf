@@ -54,3 +54,9 @@ variable "dns_records" {
   description = "DNS records for the domain - published in Cloud DNS when manage_dns = true, otherwise just documents what to set up at the registrar"
   default     = []
 }
+
+variable "ci_deployer_service_account" {
+  type        = string
+  description = "Email of the shared github-actions-deployer SA (lives in rk-infra-krl) that runs Terraform in CI - needs actAs on the per-client runtime SA to deploy Cloud Run"
+  default     = "github-actions-deployer@rk-infra-krl.iam.gserviceaccount.com"
+}
