@@ -1,0 +1,15 @@
+body {
+  font-family: system-ui, sans-serif;
+}
+
+.content {
+  white-space: pre-wrap;
+}
+
+.error {
+  color: #b00020;
+}
+
+.success {
+  color: #0a7a0a;
+}

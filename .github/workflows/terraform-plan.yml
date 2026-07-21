@@ -1,0 +1,58 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    paths:
+      - 'clients/*/infra/**'
+      - 'modules/**'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      clients: ${{ steps.detect.outputs.clients }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: detect
+        run: |
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          if echo "$changed" | grep -q '^modules/'; then
+            clients=$(ls -d clients/*/ | xargs -n1 basename | grep -v '^_template$' | jq -R -s -c 'split("\n")[:-1]')
+          else
+            clients=$(echo "$changed" | grep -oE '^clients/[^/]+' | sed 's#clients/##' | grep -v '^_template$' | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          fi
+          echo "clients=$clients" >> "$GITHUB_OUTPUT"
+
+  plan:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.clients != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client: ${{ fromJson(needs.detect-changes.outputs.clients) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Requires WIF_PROVIDER / WIF_SERVICE_ACCOUNT repo variables to be set up
+      # once the bootstrap "infra" project and its Workload Identity Federation pool exist.
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: clients/${{ matrix.client }}/infra
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform Plan
+        working-directory: clients/${{ matrix.client }}/infra
+        run: terraform plan -var-file=prod.tfvars
