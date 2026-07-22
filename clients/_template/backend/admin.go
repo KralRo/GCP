@@ -20,6 +20,9 @@ import (
 type app struct {
 	fs            *firestore.Client
 	sessionSecret []byte
+	// Hostname the admin panel is also served on at its root path, e.g.
+	// "admin.example.com". Empty disables host-based routing.
+	adminHost string
 }
 
 type adminConfig struct {
@@ -64,6 +67,23 @@ func (a *app) loadContent(ctx context.Context) (string, error) {
 	return c.Body, nil
 }
 
+// loginPath and adminPath return the right URL depending on which host the
+// request came in on - the main site's /admin/* path, or the dedicated
+// adminHost's root, when that's configured and matches the request.
+func (a *app) loginPath(r *http.Request) string {
+	if a.adminHost != "" && r.Host == a.adminHost {
+		return "/login"
+	}
+	return "/admin/login"
+}
+
+func (a *app) adminPath(r *http.Request) string {
+	if a.adminHost != "" && r.Host == a.adminHost {
+		return "/"
+	}
+	return "/admin"
+}
+
 func (a *app) signSession(username string, expiry int64) string {
 	payload := fmt.Sprintf("%s.%d", username, expiry)
 	mac := hmac.New(sha256.New, a.sessionSecret)
@@ -94,7 +114,7 @@ func (a *app) setSessionCookie(w http.ResponseWriter, username string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    a.signSession(username, expiry),
-		Path:     "/admin",
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
@@ -106,7 +126,7 @@ func (a *app) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
-		Path:     "/admin",
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
@@ -118,11 +138,11 @@ func (a *app) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(sessionCookieName)
 		if err != nil {
-			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 			return
 		}
 		if _, ok := a.verifySession(cookie.Value); !ok {
-			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 			return
 		}
 		next(w, r)
@@ -162,11 +182,11 @@ func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 		if username != cfg.Username || bcrypt.CompareHashAndPassword([]byte(cfg.PasswordHash), []byte(password)) != nil {
-			http.Redirect(w, r, "/admin/login?error=1", http.StatusSeeOther)
+			http.Redirect(w, r, a.loginPath(r)+"?error=1", http.StatusSeeOther)
 			return
 		}
 		a.setSessionCookie(w, username)
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		http.Redirect(w, r, a.adminPath(r), http.StatusSeeOther)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -183,7 +203,7 @@ func (a *app) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if cfg != nil {
-		http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+		http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 		return
 	}
 
@@ -207,12 +227,12 @@ func (a *app) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.setSessionCookie(w, username)
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	http.Redirect(w, r, a.adminPath(r), http.StatusSeeOther)
 }
 
 func (a *app) handleLogout(w http.ResponseWriter, r *http.Request) {
 	a.clearSessionCookie(w)
-	http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+	http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 }
 
 func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +255,7 @@ func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/admin?saved=1", http.StatusSeeOther)
+		http.Redirect(w, r, a.adminPath(r)+"?saved=1", http.StatusSeeOther)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}

@@ -1,12 +1,344 @@
 <!doctype html>
-<html lang="cs">
+<html lang="cs" data-bs-theme="dark">
+
 <head>
-  <meta charset="utf-8">
-  <title>Client site</title>
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-  <link rel="stylesheet" href="/static/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Michaela Streckerová – Kybernetická bezpečnost & AI Act</title>
+  <link rel="icon" type="image/png" href="/static/images/favicon.ico">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/style.css" rel="stylesheet">
 </head>
+
 <body>
-  <div class="content">{{.Body}}</div>
+  <!-- NAV -->
+  <nav class="navbar navbar-expand-lg bg-opacity-75 border-bottom">
+
+    <div class="container">
+
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/static/images/logo_MS_white.png" alt="Michaela Streckerová" class="nav-logo">
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="nav" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <li class="nav-item"><a class="nav-link" href="/">Úvod</a></li>
+          <li class="nav-item"><a class="nav-link" href="#services">S čím vám mohu pomoci</a></li>
+          <li class="nav-item"><a class="nav-link" href="#process">Jak spolupráce probíhá</a></li>
+          <li class="nav-item"><a class="nav-link" href="/about">O mně</a></li>
+          <li class="nav-item">
+            <a class="btn btn-primary ms-lg-2" href="#contact">Kontakt</a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </nav>
+  <div id="thanks" class="alert alert-warning d-none">
+    Kontaktní formulář se právě dokončuje. Napište mi prosím přímo na
+    <a href="mailto:streckerova.michaela@gmail.com">streckerova.michaela@gmail.com</a>.
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container section-pad">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+          <span class="badge badge-soft rounded-pill mb-3">Kybernetická bezpečnost • NIS2 • AI Act</span>
+          <h1 class="display-5 fw-bold mb-3">Michaela Streckerová</h1>
+
+          <h2 class="h4 fw-semibold mb-3">
+            Pomáhám organizacím nastavit bezpečnost tak, aby fungovala v praxi a nejen na papíře.
+          </h2>
+
+          <p class="lead mb-4">{{.Body}}</p>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-lg" href="#contact">Domluvit si konzultaci</a>
+            <a class="btn btn-outline-primary btn-lg" href="#services">Podívat se na služby</a>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card card-soft rounded-4">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-start gap-3">
+                <div class="icon-bubble">✓</div>
+                <div>
+                  <h3 class="h6 fw-semibold mb-1">Praktické kroky místo „papír pro papír“</h3>
+                  <p class="mb-0 text-muted">Procesy a pravidla, které lidé opravdu používají.</p>
+                </div>
+              </div>
+              <hr class="my-4">
+              <div class="d-flex align-items-start gap-3">
+                <div class="icon-bubble">⚑</div>
+                <div>
+                  <h3 class="h6 fw-semibold mb-1">NIS2 & ZoKB bez zbytečné zátěže</h3>
+                  <p class="mb-0 text-muted">Co udělat hned a co může počkat – jasné priority.</p>
+                </div>
+              </div>
+              <hr class="my-4">
+              <div class="d-flex align-items-start gap-3">
+                <div class="icon-bubble">AI</div>
+                <div>
+                  <h3 class="h6 fw-semibold mb-1">AI Act srozumitelně</h3>
+                  <p class="mb-0 text-muted">Bez strašení, s pravidly a kontrolními body.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SERVICES TILES -->
+  <section id="services" class="section-pad anchor-offset">
+    <div class="container">
+      <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">S čím vám mohu pomoci</h2>
+          <p class="text-muted mb-0">Tři oblasti, které nejčastěji řeším s klienty.</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Tile 1 -->
+        <div class="col-lg-4">
+          <div class="card card-soft h-100 rounded-4">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold">AI ve firmě & požadavky AI Act</h3>
+              <p class="text-muted">
+                AI může firmě hodně pomoci, ale jen ve chvíli, kdy je zavedena chytře a bezpečně. Společně nastavíme,
+                kde vám AI dává smysl, jak ji bezpečně používat a co po vás chce AI Act.
+              </p>
+              <p class="fw-semibold mb-2">Prakticky, bez strašení a bez zbytečných komplikací.</p>
+              <ul class="mb-0">
+                <li>kde má pro vás AI reálný přínos</li>
+                <li>jak ji bezpečně a zodpovědně integrovat do provozu</li>
+                <li>co po vás AI Act skutečně požaduje</li>
+                <li>jasné a jednoduché postupy, pravidla a kontrolní body</li>
+                <li>příprava dokumentace i doporučení pro vedení</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 2 -->
+        <div class="col-lg-4">
+          <div class="card card-soft h-100 rounded-4">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold">Procesy, role & bezpečnost podle NIS2 a ZoKB</h3>
+              <p class="text-muted">
+                Když víte, co máte dělat a kdo za co odpovídá, všechno najednou funguje. Pomohu vám převést NIS2 a
+                požadavky
+                Zákona o kybernetické bezpečnosti do praxe tak, aby zapadly do vašeho běžného fungování, a ne aby ho
+                komplikovaly.
+              </p>
+              <ul class="mb-0">
+                <li>nastavení rolí a odpovědností (CISO, vedení, IT, projektové role, role dle ZoKB)</li>
+                <li>procesy, které lidé opravdu používají</li>
+                <li>řízení rizik a rozhodování</li>
+                <li>praktické směrnice a postupy</li>
+                <li>přehled, co je nutné udělat hned a co může bez problémů počkat</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 3 -->
+        <div class="col-lg-4">
+          <div class="card card-soft h-100 rounded-4">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold">Školení & bezpečnostní kultura</h3>
+              <p class="text-muted">
+                Bezpečnost stojí hlavně na lidech. Když vědí proč a jak, začnou jednat správně automaticky.
+                Připravím školení a interní komunikaci tak, aby si zaměstnanci odnesli hlavně to „proč“.
+              </p>
+              <ul class="mb-0">
+                <li>školení na míru firmě a prostředí (on-site i on-line)</li>
+                <li>krátké, srozumitelné formáty (prezentace, videa, microlearning)</li>
+                <li>interní články a kampaně</li>
+                <li>návody, které jsou jasné a použitelné</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <h3 class="h6 text-uppercase text-muted mb-2">Klíčové aktivity</h3>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge small-badge text-bg-light border">AI ve firmě & požadavky AI Actu</span>
+          <span class="badge small-badge text-bg-light border">Procesy, role & bezpečnost podle NIS2 a ZoKB</span>
+          <span class="badge small-badge text-bg-light border">Školení & bezpečnostní kultura</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section id="process" class="section-pad anchor-offset">
+    <div class="container">
+      <h2 class="fw-bold mb-2">Jak spolupráce probíhá</h2>
+      <p class="text-muted mb-4">
+        Vždy mi záleží na tom, aby spolupráce byla jednoduchá a praktická. Žádné složité procesy, žádné nekonečné
+        schůzky.
+      </p>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="card card-soft rounded-4 h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold mb-3">1) Úvodní konzultace</h3>
+              <p class="mb-0">
+                Krátce si vyjasníme, co potřebujete vyřešit, jaké máte cíle a v jakém stavu jsou vaše procesy a
+                dokumentace.
+                Konzultace může být on-line, telefonicky či osobně.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card card-soft rounded-4 h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold mb-3">2) Rychlá analýza současného stavu</h3>
+              <p class="mb-0">
+                Podívám se na vaše prostředí, role, dokumenty a procesy. Nejde o audit, spíše praktický přehled,
+                co funguje, co je v souladu a co je potřeba doplnit.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card card-soft rounded-4 h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold mb-3">3) Návrh konkrétních kroků</h3>
+              <p class="mb-0">
+                Připravím přehledné doporučení: co udělat hned, co počká a co může být dlouhodobý plán – tak,
+                aby kroky zapadly do běžného provozu.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card card-soft rounded-4 h-100">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold mb-3">4) Společné zavedení změn</h3>
+              <p class="mb-0">
+                Nastavíme role, procesy, pravidla pro AI, směrnice i školení. Krok za krokem, aby změny byly funkční
+                a pochopitelné pro všechny.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-12">
+          <div class="card card-soft rounded-4">
+            <div class="card-body p-4">
+              <h3 class="h5 fw-bold mb-2">5) Předání podkladů a podpora</h3>
+              <p class="mb-0">
+                Dostanete jasné a přehledné materiály, postupy a dokumentaci, kterou můžete dál používat.
+                Po dohodě i dlouhodobá podpora, školení nebo průběžné revize.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section-pad anchor-offset">
+    <div class="container">
+
+      <h2 class="fw-bold mb-4">Kontakt</h2>
+
+      <div class="row g-4 align-items-start">
+        <!-- LEFT: EMAIL CARD -->
+        <div class="col-lg-5">
+          <div class="card card-soft rounded-4 h-100">
+            <div class="card-body p-4">
+              <div class="mb-2">
+                <span class="fw-semibold">E-mail:</span>
+                <a class="text-muted text-decoration-none" href="mailto:streckerova.michaela@gmail.com">
+                  streckerova.michaela@gmail.com
+                </a>
+              </div>
+              <hr>
+              <p class="text-muted mb-0">
+                Máte otázku, zájem o konzultaci nebo řešíte konkrétní požadavek? Napište mi pár vět níže a domluvíme
+                další kroky.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: FORM CARD -->
+        <div class="col-lg-7">
+          <div class="card card-soft rounded-4">
+            <div class="card-body p-4">
+              <form method="POST" action="/contact">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="name">Jméno</label>
+                    <input id="name" name="name" class="form-control" type="text" required>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label" for="email">E-mail</label>
+                    <input id="email" name="email" class="form-control" type="email" required>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label" for="message">Zpráva</label>
+                    <textarea id="message" name="message" class="form-control" rows="5" required></textarea>
+                  </div>
+
+                  <!-- honeypot -->
+                  <input type="text" name="company" style="display:none">
+
+                  <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Odeslat</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <footer class="footer py-4">
+    <div class="container d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <div>© <span id="y"></span> Michaela Streckerová</div>
+      <div class="d-flex gap-3">
+        <a href="/about" class="text-decoration-none">O mně</a>
+        <a href="#contact" class="text-decoration-none">Kontakt</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+
+  <script>
+    if (new URLSearchParams(window.location.search).get('sent') === 'unavailable') {
+      document.getElementById('thanks').classList.remove('d-none');
+    }
+  </script>
+
 </body>
+
 </html>
