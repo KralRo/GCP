@@ -63,7 +63,7 @@ func main() {
 	mux.HandleFunc("/admin", app.requireAuth(app.handleAdmin))
 
 	// Admin panel also reachable at its own subdomain root (e.g.
-	// admin.streckerova.kralroman.com/) instead of the /admin path above.
+	// admin.streckerova.kralroman.org/) instead of the /admin path above.
 	// The /admin/* routes stay registered as a fallback until DNS/domain
 	// mapping for ADMIN_HOST is live.
 	if app.adminHost != "" {
