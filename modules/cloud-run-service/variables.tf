@@ -63,6 +63,6 @@ variable "memory" {
 
 variable "domain_mappings" {
   type        = list(string)
-  description = "Hostnames to map to this Cloud Run service via google_cloud_run_domain_mapping, e.g. [\"streckerova.kralroman.com\", \"admin.streckerova.kralroman.com\"]. Domain ownership must be verified (Search Console) before apply, or the mapping resource will fail to create."
+  description = "Hostnames to map to this Cloud Run service via google_cloud_run_domain_mapping, e.g. [\"streckerova.kralroman.org\", \"admin.streckerova.kralroman.org\"]. Domain ownership must be verified (Search Console) before apply, or the mapping resource will fail to create."
   default     = []
 }

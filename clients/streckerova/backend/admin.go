@@ -22,7 +22,7 @@ type app struct {
 	fs            *firestore.Client
 	sessionSecret []byte
 	// Hostname the admin panel is also served on at its root path, e.g.
-	// "admin.streckerova.kralroman.com". Empty disables host-based routing.
+	// "admin.streckerova.kralroman.org". Empty disables host-based routing.
 	adminHost string
 }
 

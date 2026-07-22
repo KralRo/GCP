@@ -57,7 +57,7 @@ variable "dns_records" {
 
 variable "domain_mappings" {
   type        = list(string)
-  description = "Hostnames to map to the Cloud Run service, e.g. [\"streckerova.kralroman.com\", \"admin.streckerova.kralroman.com\"]"
+  description = "Hostnames to map to the Cloud Run service, e.g. [\"streckerova.kralroman.org\", \"admin.streckerova.kralroman.org\"]"
   default     = []
 }
 
