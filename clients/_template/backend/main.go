@@ -34,7 +34,11 @@ func main() {
 	}
 	defer fsClient.Close()
 
-	app := &app{fs: fsClient, sessionSecret: []byte(os.Getenv("SESSION_SECRET"))}
+	app := &app{
+		fs:            fsClient,
+		sessionSecret: []byte(os.Getenv("SESSION_SECRET")),
+		adminHost:     os.Getenv("ADMIN_HOST"),
+	}
 
 	mux := http.NewServeMux()
 	// NOT /healthz - that path is intercepted by Google's frontend on *.run.app
@@ -50,6 +54,17 @@ func main() {
 	mux.HandleFunc("/admin/setup", app.handleSetup)
 	mux.HandleFunc("/admin/logout", app.handleLogout)
 	mux.HandleFunc("/admin", app.requireAuth(app.handleAdmin))
+
+	// Admin panel also reachable at its own subdomain root (e.g.
+	// admin.example.com/) instead of the /admin path above. The /admin/*
+	// routes stay registered as a fallback until DNS/domain mapping for
+	// ADMIN_HOST is live.
+	if app.adminHost != "" {
+		mux.HandleFunc(app.adminHost+"/login", app.handleLoginPage)
+		mux.HandleFunc(app.adminHost+"/setup", app.handleSetup)
+		mux.HandleFunc(app.adminHost+"/logout", app.handleLogout)
+		mux.HandleFunc(app.adminHost+"/", app.requireAuth(app.handleAdmin))
+	}
 
 	log.Printf("listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))

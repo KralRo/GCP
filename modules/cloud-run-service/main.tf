@@ -41,3 +41,18 @@ resource "google_cloud_run_v2_service_iam_member" "public_access" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+resource "google_cloud_run_domain_mapping" "this" {
+  for_each = toset(var.domain_mappings)
+  project  = var.project_id
+  location = var.region
+  name     = each.value
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.this.name
+  }
+}

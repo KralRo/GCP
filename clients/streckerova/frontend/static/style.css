@@ -1,15 +1,270 @@
-body {
-  font-family: system-ui, sans-serif;
+/* ====== Dark theme podle screenshotu ====== */
+:root {
+  /* pozadí / plochy */
+  --bg: #0f1115;
+  /* hlavní pozadí */
+  --bg-2: #121520;
+  /* jemně odlišná sekce */
+  --nav: #1a1b20;
+  /* navbar */
+  --surface: #2b2f3e;
+  /* karty */
+  --surface-2: #292d3a;
+  /* karty (alt) */
+  --border: #3a3f52;
+  /* border karet */
+
+  /* text */
+  --text: #f2f4f8;
+  /* hlavní text */
+  --muted: #a8afc2;
+  /* sekundární text */
+
+  /* akcent */
+  --primary: #5067df;
+  /* modrá z tlačítek */
+  --primary-2: #5c77f0;
+  /* hover */
 }
 
-.content {
-  white-space: pre-wrap;
+html {
+  scroll-behavior: smooth;
 }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+/* Bootstrap helpers */
+.text-muted {
+  color: var(--muted) !important;
+}
+
+/* Navbar */
+.navbar {
+  background: var(--nav) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .06) !important;
+}
+
+.navbar .nav-link {
+  color: rgba(242, 244, 248, .75) !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: var(--text) !important;
+}
+
+.navbar-brand {
+  color: var(--text) !important;
+}
+
+/* Hero – jemné světlo na tmě */
+.hero {
+  background:
+    radial-gradient(900px 500px at 20% 20%, rgba(80, 103, 223, .18), transparent 60%),
+    radial-gradient(700px 400px at 80% 10%, rgba(80, 103, 223, .10), transparent 55%),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+}
+
+/* Sekce */
+.section-pad {
+  padding: 30px 0;
+}
+
+.section-pad-sm {
+  padding: 48px 0;
+}
+
+.bg-light {
+  background: var(--bg-2) !important;
+}
+
+/* když používáš bg-light v HTML */
+
+/* Karty */
+.card-soft {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .45);
+}
+
+.card-soft .card-body {
+  color: var(--text);
+}
+
+/* Badge */
+.badge-soft {
+  background: rgba(255, 255, 255, .06);
+  color: rgba(242, 244, 248, .80);
+  border: 1px solid rgba(255, 255, 255, .10);
+}
+
+/* ikonky v bubble */
+.icon-bubble {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(80, 103, 223, .14);
+  border: 1px solid rgba(80, 103, 223, .25);
+  color: rgba(242, 244, 248, .9);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary);
+  border-color: rgba(255, 255, 255, .08);
+}
+
+.btn-primary:hover {
+  background: var(--primary-2);
+  border-color: rgba(255, 255, 255, .10);
+}
+
+.btn-outline-primary {
+  color: rgba(242, 244, 248, .85);
+  border-color: rgba(255, 255, 255, .16);
+}
+
+.btn-outline-primary:hover {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .22);
+  color: var(--text);
+}
+
+/* Forms */
+.form-control,
+textarea {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .10);
+  color: var(--text);
+}
+
+.form-control:focus,
+textarea:focus {
+  background: rgba(255, 255, 255, .05);
+  border-color: rgba(80, 103, 223, .55);
+  box-shadow: 0 0 0 .25rem rgba(80, 103, 223, .20);
+  color: var(--text);
+}
+
+.form-label {
+  color: rgba(242, 244, 248, .85);
+}
+
+.form-hint {
+  font-size: .95rem;
+  color: rgba(242, 244, 248, .65);
+}
+
+.footer {
+  background: #0b0d12;
+  color: rgba(242, 244, 248, .70);
+  border-top: 1px solid rgba(255, 255, 255, .06);
+}
+
+.footer a {
+  color: rgba(242, 244, 248, .85);
+}
+
+.anchor-offset {
+  scroll-margin-top: 90px;
+}
+
+
+
+.nav-logo {
+  height: 80px;
+  width: auto;
+
+  /* tohle zajistí čitelnost na tmavém pozadí */
+  background: rgba(254, 254, 254, 0);
+  /*border: 1px solid rgba(255,255,255,.12);*/
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  /* jemné “glow”, aby se to líp oddělilo */
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .45));
+}
+
+/* ---------------------------
+   Mobile polish
+---------------------------- */
+
+/* bezpečné zalamování dlouhých slov/URL */
+body {
+  overflow-wrap: anywhere;
+}
+
+/* Navbar: lepší spacing a čitelnost po rozkliknutí */
+@media (max-width: 991.98px) {
+  .navbar .navbar-collapse {
+    padding: .75rem 0;
+  }
+
+  .navbar .navbar-nav .nav-link {
+    padding: .6rem 0;
+  }
+
+  .navbar .navbar-nav .btn {
+    width: 100%;
+    margin-top: .25rem;
+  }
+}
+
+@media (max-width: 500px) {
+
+  .hero {
+    padding: 20px;
+  }
+}
+
+.small-badge {
+  opacity: 50%;
+  font-size: 0.95rem;
+  /* bylo menší */
+  padding: .45rem .75rem;
+  border-radius: 999px;
+}
+
+/* ---------------------------
+   Admin panel (plain forms, no Bootstrap classes)
+---------------------------- */
 
 .error {
-  color: #b00020;
+  color: #ff8a8a;
 }
 
 .success {
-  color: #0a7a0a;
+  color: #7be08a;
+}
+
+body form:not([class]) label {
+  display: block;
+  margin-bottom: .75rem;
+  color: var(--text);
+}
+
+body form:not([class]) input,
+body form:not([class]) textarea {
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: .4rem .6rem;
+}
+
+body form:not([class]) button {
+  background: var(--primary);
+  color: var(--text);
+  border: none;
+  border-radius: 6px;
+  padding: .5rem 1rem;
+  margin-top: .5rem;
+  cursor: pointer;
 }

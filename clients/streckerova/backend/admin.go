@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,6 +21,9 @@ import (
 type app struct {
 	fs            *firestore.Client
 	sessionSecret []byte
+	// Hostname the admin panel is also served on at its root path, e.g.
+	// "admin.streckerova.kralroman.com". Empty disables host-based routing.
+	adminHost string
 }
 
 type adminConfig struct {
@@ -33,6 +37,9 @@ type pageContent struct {
 
 const sessionCookieName = "admin_session"
 const sessionTTL = 12 * time.Hour
+
+// Seed text shown on the homepage hero until the client edits it via /admin.
+const defaultHomeBody = "Nastavíme společně bezpečnost tak, aby fungovala v každodenním provozu, splňovala zákonné požadavky a přirozeně zapadla do toho, jak vaše firma opravdu funguje. Zaměříme se na praktické kroky vycházející z NIS2 a AI Actu, které zapadnou do vašeho běžného provozu a budou srozumitelné a použitelné pro každého."
 
 func (a *app) loadAdminConfig(ctx context.Context) (*adminConfig, error) {
 	doc, err := a.fs.Collection("admin").Doc("config").Get(ctx)
@@ -52,7 +59,7 @@ func (a *app) loadAdminConfig(ctx context.Context) (*adminConfig, error) {
 func (a *app) loadContent(ctx context.Context) (string, error) {
 	doc, err := a.fs.Collection("content").Doc("home").Get(ctx)
 	if status.Code(err) == codes.NotFound {
-		return "It works.", nil
+		return defaultHomeBody, nil
 	}
 	if err != nil {
 		return "", err
@@ -62,6 +69,23 @@ func (a *app) loadContent(ctx context.Context) (string, error) {
 		return "", err
 	}
 	return c.Body, nil
+}
+
+// loginPath and adminPath return the right URL depending on which host the
+// request came in on - the main site's /admin/* path, or the dedicated
+// adminHost's root, when that's configured and matches the request.
+func (a *app) loginPath(r *http.Request) string {
+	if a.adminHost != "" && r.Host == a.adminHost {
+		return "/login"
+	}
+	return "/admin/login"
+}
+
+func (a *app) adminPath(r *http.Request) string {
+	if a.adminHost != "" && r.Host == a.adminHost {
+		return "/"
+	}
+	return "/admin"
 }
 
 func (a *app) signSession(username string, expiry int64) string {
@@ -94,7 +118,7 @@ func (a *app) setSessionCookie(w http.ResponseWriter, username string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    a.signSession(username, expiry),
-		Path:     "/admin",
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
@@ -106,7 +130,7 @@ func (a *app) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
-		Path:     "/admin",
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
@@ -118,11 +142,11 @@ func (a *app) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(sessionCookieName)
 		if err != nil {
-			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 			return
 		}
 		if _, ok := a.verifySession(cookie.Value); !ok {
-			http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+			http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 			return
 		}
 		next(w, r)
@@ -138,6 +162,27 @@ func (a *app) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if err := tmplIndex.Execute(w, struct{ Body string }{body}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+// handleStatic renders a template that needs no request-specific data - the
+// about/services/blog pages, none of which are Firestore-backed yet.
+func (a *app) handleStatic(t *template.Template) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := t.Execute(w, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+// handleContact just acknowledges the submission - no SMTP wiring yet, see
+// the "sent=unavailable" banner on the homepage. Never send credentials or
+// mail here without going through Secret Manager first.
+func (a *app) handleContact(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/#contact", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/?sent=unavailable#contact", http.StatusSeeOther)
 }
 
 func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
@@ -162,11 +207,11 @@ func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 		if username != cfg.Username || bcrypt.CompareHashAndPassword([]byte(cfg.PasswordHash), []byte(password)) != nil {
-			http.Redirect(w, r, "/admin/login?error=1", http.StatusSeeOther)
+			http.Redirect(w, r, a.loginPath(r)+"?error=1", http.StatusSeeOther)
 			return
 		}
 		a.setSessionCookie(w, username)
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		http.Redirect(w, r, a.adminPath(r), http.StatusSeeOther)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -183,7 +228,7 @@ func (a *app) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if cfg != nil {
-		http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+		http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 		return
 	}
 
@@ -207,12 +252,12 @@ func (a *app) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.setSessionCookie(w, username)
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	http.Redirect(w, r, a.adminPath(r), http.StatusSeeOther)
 }
 
 func (a *app) handleLogout(w http.ResponseWriter, r *http.Request) {
 	a.clearSessionCookie(w)
-	http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+	http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 }
 
 func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +280,7 @@ func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/admin?saved=1", http.StatusSeeOther)
+		http.Redirect(w, r, a.adminPath(r)+"?saved=1", http.StatusSeeOther)
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}

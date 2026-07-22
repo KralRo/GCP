@@ -55,6 +55,18 @@ variable "dns_records" {
   default     = []
 }
 
+variable "domain_mappings" {
+  type        = list(string)
+  description = "Hostnames to map to the Cloud Run service, e.g. [\"streckerova.kralroman.com\", \"admin.streckerova.kralroman.com\"]"
+  default     = []
+}
+
+variable "admin_host" {
+  type        = string
+  description = "Hostname the admin panel should also be served on at its root path (in addition to /admin on the main domain). Empty disables host-based admin routing."
+  default     = ""
+}
+
 variable "ci_deployer_service_account" {
   type        = string
   description = "Email of the shared github-actions-deployer SA (lives in rk-infra-krl) that runs Terraform in CI - needs actAs on the per-client runtime SA to deploy Cloud Run"

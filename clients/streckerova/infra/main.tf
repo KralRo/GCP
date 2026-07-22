@@ -70,11 +70,13 @@ module "cloud_run" {
   service_name    = "svc-${var.env}"
   image           = var.image
   service_account = google_service_account.runtime.email
+  domain_mappings = var.domain_mappings
 
   env_vars = {
     FIRESTORE_PROJECT_ID  = var.project_id
     FIRESTORE_DATABASE_ID = local.firestore_database_id
     SESSION_SECRET        = random_password.session_secret.result
+    ADMIN_HOST            = var.admin_host
   }
 
   depends_on = [
@@ -91,6 +93,13 @@ module "firestore" {
   location_id = var.firestore_location
 }
 
+resource "google_project_service" "dns" {
+  count              = var.manage_dns ? 1 : 0
+  project            = var.project_id
+  service            = "dns.googleapis.com"
+  disable_on_destroy = false
+}
+
 module "dns" {
   source = "../../../modules/dns-record"
 
@@ -98,4 +107,6 @@ module "dns" {
   project_id = var.project_id
   domain     = var.domain
   records    = var.dns_records
+
+  depends_on = [google_project_service.dns]
 }
