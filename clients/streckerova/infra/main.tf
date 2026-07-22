@@ -103,10 +103,11 @@ resource "google_project_service" "dns" {
 module "dns" {
   source = "../../../modules/dns-record"
 
-  manage_dns = var.manage_dns
-  project_id = var.project_id
-  domain     = var.domain
-  records    = var.dns_records
+  manage_dns  = var.manage_dns
+  create_zone = var.create_zone
+  project_id  = var.project_id
+  domain      = var.domain
+  records     = var.dns_records
 
   depends_on = [google_project_service.dns]
 }
