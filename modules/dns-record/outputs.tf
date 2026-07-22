@@ -1,5 +1,5 @@
 output "name_servers" {
-  value       = var.manage_dns ? google_dns_managed_zone.this[0].name_servers : null
+  value       = var.manage_dns ? (var.create_zone ? google_dns_managed_zone.this[0].name_servers : data.google_dns_managed_zone.existing[0].name_servers) : null
   description = "Name servers to set at the registrar, if Cloud DNS manages this zone"
 }
 

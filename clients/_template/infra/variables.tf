@@ -38,6 +38,12 @@ variable "manage_dns" {
   default     = false
 }
 
+variable "create_zone" {
+  type        = bool
+  description = "Whether to create a new Cloud DNS managed zone (true) or reference one that already exists, e.g. auto-provisioned by Cloud Domains at registration (false). Only relevant when manage_dns = true."
+  default     = true
+}
+
 variable "domain" {
   type        = string
   description = "Client's domain name"

@@ -6,13 +6,15 @@ env         = "prod"
 domain_mappings = ["streckerova.kralroman.org", "admin.streckerova.kralroman.org"]
 admin_host      = "admin.streckerova.kralroman.org"
 
-# Cloud DNS manages kralroman.org itself (Roman's own domain - previously
-# lived in a different, now-deleted GCP project, so this is a fresh zone).
-# CNAME target is Google's documented value for Cloud Run domain mappings on
-# a subdomain; cross-check against the `domain_mapping_records` output after
-# apply and correct here if Google returns something different.
-manage_dns = true
-domain     = "kralroman.org"
+# Cloud Domains auto-provisioned a Cloud DNS zone "kralroman-org" for this
+# domain in this same project at registration - reference it, don't create
+# a duplicate (create_zone = false). CNAME target is Google's documented
+# value for Cloud Run domain mappings on a subdomain; cross-check against the
+# `domain_mapping_records` output after apply and correct here if Google
+# returns something different.
+manage_dns  = true
+create_zone = false
+domain      = "kralroman.org"
 dns_records = [
   { name = "streckerova", type = "CNAME", ttl = 300, rrdatas = ["ghs.googlehosted.com."] },
   { name = "admin.streckerova", type = "CNAME", ttl = 300, rrdatas = ["ghs.googlehosted.com."] },
