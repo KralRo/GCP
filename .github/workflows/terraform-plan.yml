@@ -36,6 +36,8 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.clients != '[]'
     runs-on: ubuntu-latest
+    env:
+      REGION: europe-west1
     strategy:
       matrix:
         client: ${{ fromJson(needs.detect-changes.outputs.clients) }}
@@ -49,12 +51,33 @@ jobs:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
 
+      - uses: google-github-actions/setup-gcloud@v2
+
       - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         working-directory: clients/${{ matrix.client }}/infra
         run: terraform init -backend-config=backend.hcl
 
+      # var.image has no value in prod.tfvars (terraform-apply.yml always passes
+      # it explicitly at apply time, built or reused). Without an override here,
+      # plan would fall back to the module's placeholder default and show every
+      # PR proposing to replace the live image with it. Resolve what's actually
+      # deployed instead so plan reflects reality; a client with no deployment
+      # yet just falls through to the placeholder default, which is correct too.
+      - name: Resolve currently deployed image
+        id: current_image
+        run: |
+          image=$(gcloud run services describe "svc-prod" \
+            --project="rk-${{ matrix.client }}" --region="${REGION}" \
+            --format='value(spec.template.spec.containers[0].image)' 2>/dev/null || true)
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
       - name: Terraform Plan
         working-directory: clients/${{ matrix.client }}/infra
-        run: terraform plan -var-file=prod.tfvars
+        run: |
+          if [ -n "${{ steps.current_image.outputs.image }}" ]; then
+            terraform plan -var-file=prod.tfvars -var="image=${{ steps.current_image.outputs.image }}"
+          else
+            terraform plan -var-file=prod.tfvars
+          fi

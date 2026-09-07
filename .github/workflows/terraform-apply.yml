@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       clients: ${{ steps.detect.outputs.clients }}
+      build_clients: ${{ steps.detect.outputs.build_clients }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,13 +31,21 @@ jobs:
           else
             clients=$(echo "$changed" | grep -oE '^clients/[^/]+' | sed 's#clients/##' | grep -v '^_template$' | sort -u | jq -R -s -c 'split("\n")[:-1]')
           fi
+          # Clients whose own backend/frontend source changed - only these need a
+          # fresh image build. A modules/** change never lands here: shared
+          # Terraform modules aren't part of the app image, so it stays out of
+          # build_clients even when it puts every client into "clients" above.
+          build_clients=$(echo "$changed" | grep -oE '^clients/[^/]+/(backend|frontend)/' | sed -E 's#clients/([^/]+)/.*#\1#' | grep -v '^_template$' | sort -u | jq -R -s -c 'split("\n")[:-1]')
           echo "clients=$clients" >> "$GITHUB_OUTPUT"
+          echo "build_clients=$build_clients" >> "$GITHUB_OUTPUT"
 
   apply:
     needs: detect-changes
     if: needs.detect-changes.outputs.clients != '[]'
     runs-on: ubuntu-latest
-    # GitHub Environment "prod" with Roman as required reviewer - blocks this job until approved.
+    # GitHub Environment "prod" - deployment_branch_policy still restricts this
+    # to the main branch. No required reviewer: branch protection on main (1
+    # required PR approval) is the actual gate now, see fix/pipeline-triggers.
     environment: prod
     env:
       REGION: europe-west1
@@ -65,16 +74,33 @@ jobs:
         run: terraform apply -auto-approve -var-file=prod.tfvars -target=module.artifact_registry
 
       - name: Configure Docker for Artifact Registry
+        if: contains(fromJson(needs.detect-changes.outputs.build_clients), matrix.client)
         run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
       - name: Build and push image
-        id: image
+        id: build
+        if: contains(fromJson(needs.detect-changes.outputs.build_clients), matrix.client)
         run: |
           image="${REGION}-docker.pkg.dev/rk-${{ matrix.client }}/app/svc:${{ github.sha }}"
           docker build -f "clients/${{ matrix.client }}/backend/Dockerfile" -t "$image" "clients/${{ matrix.client }}"
           docker push "$image"
           echo "image=$image" >> "$GITHUB_OUTPUT"
 
+      # No backend/frontend change for this client - reuse the image that's
+      # already running instead of rebuilding an identical one, so infra-only
+      # changes (DNS, IAM, sizing, ...) don't force a needless new Cloud Run
+      # revision. Assumes the service already exists, which holds in practice:
+      # a client's first-ever PR always includes backend/frontend (copied from
+      # _template), so build_clients is never empty on a first deploy.
+      - name: Resolve currently deployed image
+        id: current_image
+        if: ${{ !contains(fromJson(needs.detect-changes.outputs.build_clients), matrix.client) }}
+        run: |
+          image=$(gcloud run services describe "svc-prod" \
+            --project="rk-${{ matrix.client }}" --region="${REGION}" \
+            --format='value(spec.template.spec.containers[0].image)')
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
       - name: Terraform Apply
         working-directory: clients/${{ matrix.client }}/infra
-        run: terraform apply -auto-approve -var-file=prod.tfvars -var="image=${{ steps.image.outputs.image }}"
+        run: terraform apply -auto-approve -var-file=prod.tfvars -var="image=${{ steps.build.outputs.image || steps.current_image.outputs.image }}"
