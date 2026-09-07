@@ -165,7 +165,7 @@ func (a *app) handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleStatic renders a template that needs no request-specific data - the
-// about/services/blog pages, none of which are Firestore-backed yet.
+// about/services pages, neither of which are Firestore-backed yet.
 func (a *app) handleStatic(t *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, nil); err != nil {

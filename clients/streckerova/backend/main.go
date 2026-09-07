@@ -14,7 +14,6 @@ var (
 	tmplIndex    = template.Must(template.ParseFiles("frontend/templates/index.html"))
 	tmplAbout    = template.Must(template.ParseFiles("frontend/templates/about.html"))
 	tmplServices = template.Must(template.ParseFiles("frontend/templates/services.html"))
-	tmplBlog     = template.Must(template.ParseFiles("frontend/templates/blog.html"))
 	tmplLogin    = template.Must(template.ParseFiles("frontend/templates/admin_login.html"))
 	tmplSetup    = template.Must(template.ParseFiles("frontend/templates/admin_setup.html"))
 	tmplEdit     = template.Must(template.ParseFiles("frontend/templates/admin_edit.html"))
@@ -54,7 +53,9 @@ func main() {
 	mux.HandleFunc("/", app.handleIndex)
 	mux.HandleFunc("/about", app.handleStatic(tmplAbout))
 	mux.HandleFunc("/services", app.handleStatic(tmplServices))
-	mux.HandleFunc("/blog", app.handleStatic(tmplBlog))
+	// /blog intentionally not registered - blog.html is still a stub with
+	// placeholder posts ("DOPLNIT DATUM"); re-add the route once it has real
+	// content. Template file left in place for that.
 	mux.HandleFunc("/contact", app.handleContact)
 
 	mux.HandleFunc("/admin/login", app.handleLoginPage)
