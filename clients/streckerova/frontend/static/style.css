@@ -233,38 +233,25 @@ body {
 }
 
 /* ---------------------------
-   Admin panel (plain forms, no Bootstrap classes)
+   Admin panel
 ---------------------------- */
 
+.success,
 .error {
-  color: #ff8a8a;
+  display: inline-block;
+  padding: .6rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
 .success {
+  background: rgba(123, 224, 138, .12);
+  border: 1px solid rgba(123, 224, 138, .3);
   color: #7be08a;
 }
 
-body form:not([class]) label {
-  display: block;
-  margin-bottom: .75rem;
-  color: var(--text);
-}
-
-body form:not([class]) input,
-body form:not([class]) textarea {
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 6px;
-  padding: .4rem .6rem;
-}
-
-body form:not([class]) button {
-  background: var(--primary);
-  color: var(--text);
-  border: none;
-  border-radius: 6px;
-  padding: .5rem 1rem;
-  margin-top: .5rem;
-  cursor: pointer;
+.error {
+  background: rgba(255, 138, 138, .12);
+  border: 1px solid rgba(255, 138, 138, .3);
+  color: #ff8a8a;
 }
