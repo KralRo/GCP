@@ -50,14 +50,14 @@
     <div class="container section-pad">
       <div class="row align-items-center g-4">
         <div class="col-lg-7">
-          <span class="badge badge-soft rounded-pill mb-3">Kybernetická bezpečnost • NIS2 • AI Act</span>
-          <h1 class="display-5 fw-bold mb-3">Michaela Streckerová</h1>
+          <span class="badge badge-soft rounded-pill mb-3">{{index .Content "badge"}}</span>
+          <h1 class="display-5 fw-bold mb-3">{{index .Content "h1"}}</h1>
 
           <h2 class="h4 fw-semibold mb-3">
-            Pomáhám organizacím nastavit bezpečnost tak, aby fungovala v praxi a nejen na papíře.
+            {{index .Content "h2"}}
           </h2>
 
-          <p class="lead mb-4">{{.Body}}</p>
+          <p class="lead mb-4">{{index .Content "body"}}</p>
 
           <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-primary btn-lg" href="#contact">Domluvit si konzultaci</a>
@@ -71,24 +71,24 @@
               <div class="d-flex align-items-start gap-3">
                 <div class="icon-bubble">✓</div>
                 <div>
-                  <h3 class="h6 fw-semibold mb-1">Praktické kroky místo „papír pro papír“</h3>
-                  <p class="mb-0 text-muted">Procesy a pravidla, které lidé opravdu používají.</p>
+                  <h3 class="h6 fw-semibold mb-1">{{index .Content "card1_title"}}</h3>
+                  <p class="mb-0 text-muted">{{index .Content "card1_body"}}</p>
                 </div>
               </div>
               <hr class="my-4">
               <div class="d-flex align-items-start gap-3">
                 <div class="icon-bubble">⚑</div>
                 <div>
-                  <h3 class="h6 fw-semibold mb-1">NIS2 & ZoKB bez zbytečné zátěže</h3>
-                  <p class="mb-0 text-muted">Co udělat hned a co může počkat – jasné priority.</p>
+                  <h3 class="h6 fw-semibold mb-1">{{index .Content "card2_title"}}</h3>
+                  <p class="mb-0 text-muted">{{index .Content "card2_body"}}</p>
                 </div>
               </div>
               <hr class="my-4">
               <div class="d-flex align-items-start gap-3">
                 <div class="icon-bubble">AI</div>
                 <div>
-                  <h3 class="h6 fw-semibold mb-1">AI Act srozumitelně</h3>
-                  <p class="mb-0 text-muted">Bez strašení, s pravidly a kontrolními body.</p>
+                  <h3 class="h6 fw-semibold mb-1">{{index .Content "card3_title"}}</h3>
+                  <p class="mb-0 text-muted">{{index .Content "card3_body"}}</p>
                 </div>
               </div>
             </div>
@@ -103,8 +103,8 @@
     <div class="container">
       <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-4">
         <div>
-          <h2 class="fw-bold mb-1">S čím vám mohu pomoci</h2>
-          <p class="text-muted mb-0">Tři oblasti, které nejčastěji řeším s klienty.</p>
+          <h2 class="fw-bold mb-1">{{index .Content "services_heading"}}</h2>
+          <p class="text-muted mb-0">{{index .Content "services_subheading"}}</p>
         </div>
       </div>
 
@@ -113,18 +113,12 @@
         <div class="col-lg-4">
           <div class="card card-soft h-100 rounded-4">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold">AI ve firmě & požadavky AI Act</h3>
-              <p class="text-muted">
-                AI může firmě hodně pomoci, ale jen ve chvíli, kdy je zavedena chytře a bezpečně. Společně nastavíme,
-                kde vám AI dává smysl, jak ji bezpečně používat a co po vás chce AI Act.
-              </p>
-              <p class="fw-semibold mb-2">Prakticky, bez strašení a bez zbytečných komplikací.</p>
+              <h3 class="h5 fw-bold">{{index .Content "tile1_title"}}</h3>
+              <p class="text-muted">{{index .Content "tile1_body"}}</p>
+              <p class="fw-semibold mb-2">{{index .Content "tile1_highlight"}}</p>
               <ul class="mb-0">
-                <li>kde má pro vás AI reálný přínos</li>
-                <li>jak ji bezpečně a zodpovědně integrovat do provozu</li>
-                <li>co po vás AI Act skutečně požaduje</li>
-                <li>jasné a jednoduché postupy, pravidla a kontrolní body</li>
-                <li>příprava dokumentace i doporučení pro vedení</li>
+                {{range lines (index .Content "tile1_bullets")}}<li>{{.}}</li>
+                {{end}}
               </ul>
             </div>
           </div>
@@ -134,19 +128,11 @@
         <div class="col-lg-4">
           <div class="card card-soft h-100 rounded-4">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold">Procesy, role & bezpečnost podle NIS2 a ZoKB</h3>
-              <p class="text-muted">
-                Když víte, co máte dělat a kdo za co odpovídá, všechno najednou funguje. Pomohu vám převést NIS2 a
-                požadavky
-                Zákona o kybernetické bezpečnosti do praxe tak, aby zapadly do vašeho běžného fungování, a ne aby ho
-                komplikovaly.
-              </p>
+              <h3 class="h5 fw-bold">{{index .Content "tile2_title"}}</h3>
+              <p class="text-muted">{{index .Content "tile2_body"}}</p>
               <ul class="mb-0">
-                <li>nastavení rolí a odpovědností (CISO, vedení, IT, projektové role, role dle ZoKB)</li>
-                <li>procesy, které lidé opravdu používají</li>
-                <li>řízení rizik a rozhodování</li>
-                <li>praktické směrnice a postupy</li>
-                <li>přehled, co je nutné udělat hned a co může bez problémů počkat</li>
+                {{range lines (index .Content "tile2_bullets")}}<li>{{.}}</li>
+                {{end}}
               </ul>
             </div>
           </div>
@@ -156,16 +142,11 @@
         <div class="col-lg-4">
           <div class="card card-soft h-100 rounded-4">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold">Školení & bezpečnostní kultura</h3>
-              <p class="text-muted">
-                Bezpečnost stojí hlavně na lidech. Když vědí proč a jak, začnou jednat správně automaticky.
-                Připravím školení a interní komunikaci tak, aby si zaměstnanci odnesli hlavně to „proč“.
-              </p>
+              <h3 class="h5 fw-bold">{{index .Content "tile3_title"}}</h3>
+              <p class="text-muted">{{index .Content "tile3_body"}}</p>
               <ul class="mb-0">
-                <li>školení na míru firmě a prostředí (on-site i on-line)</li>
-                <li>krátké, srozumitelné formáty (prezentace, videa, microlearning)</li>
-                <li>interní články a kampaně</li>
-                <li>návody, které jsou jasné a použitelné</li>
+                {{range lines (index .Content "tile3_bullets")}}<li>{{.}}</li>
+                {{end}}
               </ul>
             </div>
           </div>
@@ -173,11 +154,10 @@
       </div>
 
       <div class="mt-4">
-        <h3 class="h6 text-uppercase text-muted mb-2">Klíčové aktivity</h3>
+        <h3 class="h6 text-uppercase text-muted mb-2">{{index .Content "activities_heading"}}</h3>
         <div class="d-flex flex-wrap gap-2">
-          <span class="badge small-badge text-bg-light border">AI ve firmě & požadavky AI Actu</span>
-          <span class="badge small-badge text-bg-light border">Procesy, role & bezpečnost podle NIS2 a ZoKB</span>
-          <span class="badge small-badge text-bg-light border">Školení & bezpečnostní kultura</span>
+          {{range lines (index .Content "activities_badges")}}<span class="badge small-badge text-bg-light border">{{.}}</span>
+          {{end}}
         </div>
       </div>
     </div>
@@ -186,22 +166,15 @@
   <!-- PROCESS -->
   <section id="process" class="section-pad anchor-offset">
     <div class="container">
-      <h2 class="fw-bold mb-2">Jak spolupráce probíhá</h2>
-      <p class="text-muted mb-4">
-        Vždy mi záleží na tom, aby spolupráce byla jednoduchá a praktická. Žádné složité procesy, žádné nekonečné
-        schůzky.
-      </p>
+      <h2 class="fw-bold mb-2">{{index .Content "process_heading"}}</h2>
+      <p class="text-muted mb-4">{{index .Content "process_subheading"}}</p>
 
       <div class="row g-4">
         <div class="col-lg-6">
           <div class="card card-soft rounded-4 h-100">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold mb-3">1) Úvodní konzultace</h3>
-              <p class="mb-0">
-                Krátce si vyjasníme, co potřebujete vyřešit, jaké máte cíle a v jakém stavu jsou vaše procesy a
-                dokumentace.
-                Konzultace může být on-line, telefonicky či osobně.
-              </p>
+              <h3 class="h5 fw-bold mb-3">{{index .Content "step1_title"}}</h3>
+              <p class="mb-0">{{index .Content "step1_body"}}</p>
             </div>
           </div>
         </div>
@@ -209,11 +182,8 @@
         <div class="col-lg-6">
           <div class="card card-soft rounded-4 h-100">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold mb-3">2) Rychlá analýza současného stavu</h3>
-              <p class="mb-0">
-                Podívám se na vaše prostředí, role, dokumenty a procesy. Nejde o audit, spíše praktický přehled,
-                co funguje, co je v souladu a co je potřeba doplnit.
-              </p>
+              <h3 class="h5 fw-bold mb-3">{{index .Content "step2_title"}}</h3>
+              <p class="mb-0">{{index .Content "step2_body"}}</p>
             </div>
           </div>
         </div>
@@ -221,11 +191,8 @@
         <div class="col-lg-6">
           <div class="card card-soft rounded-4 h-100">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold mb-3">3) Návrh konkrétních kroků</h3>
-              <p class="mb-0">
-                Připravím přehledné doporučení: co udělat hned, co počká a co může být dlouhodobý plán – tak,
-                aby kroky zapadly do běžného provozu.
-              </p>
+              <h3 class="h5 fw-bold mb-3">{{index .Content "step3_title"}}</h3>
+              <p class="mb-0">{{index .Content "step3_body"}}</p>
             </div>
           </div>
         </div>
@@ -233,11 +200,8 @@
         <div class="col-lg-6">
           <div class="card card-soft rounded-4 h-100">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold mb-3">4) Společné zavedení změn</h3>
-              <p class="mb-0">
-                Nastavíme role, procesy, pravidla pro AI, směrnice i školení. Krok za krokem, aby změny byly funkční
-                a pochopitelné pro všechny.
-              </p>
+              <h3 class="h5 fw-bold mb-3">{{index .Content "step4_title"}}</h3>
+              <p class="mb-0">{{index .Content "step4_body"}}</p>
             </div>
           </div>
         </div>
@@ -245,11 +209,8 @@
         <div class="col-lg-12">
           <div class="card card-soft rounded-4">
             <div class="card-body p-4">
-              <h3 class="h5 fw-bold mb-2">5) Předání podkladů a podpora</h3>
-              <p class="mb-0">
-                Dostanete jasné a přehledné materiály, postupy a dokumentaci, kterou můžete dál používat.
-                Po dohodě i dlouhodobá podpora, školení nebo průběžné revize.
-              </p>
+              <h3 class="h5 fw-bold mb-2">{{index .Content "step5_title"}}</h3>
+              <p class="mb-0">{{index .Content "step5_body"}}</p>
             </div>
           </div>
         </div>
@@ -261,7 +222,7 @@
   <section id="contact" class="section-pad anchor-offset">
     <div class="container">
 
-      <h2 class="fw-bold mb-4">Kontakt</h2>
+      <h2 class="fw-bold mb-4">{{index .Content "contact_heading"}}</h2>
 
       <div class="row g-4 align-items-start">
         <!-- LEFT: EMAIL CARD -->
@@ -275,10 +236,7 @@
                 </a>
               </div>
               <hr>
-              <p class="text-muted mb-0">
-                Máte otázku, zájem o konzultaci nebo řešíte konkrétní požadavek? Napište mi pár vět níže a domluvíme
-                další kroky.
-              </p>
+              <p class="text-muted mb-0">{{index .Content "contact_intro"}}</p>
             </div>
           </div>
         </div>

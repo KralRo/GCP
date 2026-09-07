@@ -41,42 +41,29 @@
 
   <main class="section-pad">
     <div class="container">
-      <h1 class="fw-bold mb-2">S čím vám mohu pomoci</h1>
+      <h1 class="fw-bold mb-2">{{index .Content "heading"}}</h1>
 
       <!-- Service 1 -->
       <section class="mb-5">
         <div class="card card-soft rounded-4">
           <div class="card-body p-4 p-lg-5">
-            <h2 class="fw-bold mb-3">AI ve firmě & požadavky AI Act</h2>
-            <p>
-              AI může být pro firmu velkou výhodou, pokud je zavedená chytře a bezpečně. Může ale být také velkou brzdou,
-              pokud ji implementujeme jen proto, že je to zrovna trend, a nevíme jak to udělat správně.
-              Pomohu vám najít konkrétní situace, kde má AI skutečný přínos, nastavit pravidla jejího používání
-              a zároveň splnit to, co vám ukládá AI Act.
-            </p>
+            <h2 class="fw-bold mb-3">{{index .Content "s1_title"}}</h2>
+            <p>{{index .Content "s1_intro"}}</p>
 
             <div class="row g-4 mt-2">
               <div class="col-lg-6">
-                <h3 class="h5 fw-semibold">Co společně vyřešíme</h3>
+                <h3 class="h5 fw-semibold">{{index .Content "s1_solve_heading"}}</h3>
                 <ul class="mb-0">
-                  <li>identifikace oblastí, kde má AI reálný dopad na efektivitu a úspory</li>
-                  <li>bezpečné a zodpovědné zavedení AI do firemních procesů</li>
-                  <li>posouzení rizikovosti podle AI Actu (minimal, limited, high-risk systems)</li>
-                  <li>tvorba jednoduchých pravidel a kontrolních bodů</li>
-                  <li>nastavení interních postupů pro zaměstnance i vedení</li>
-                  <li>úprava nebo vytvoření bezpečnostní politiky</li>
-                  <li>jasná dokumentace a podklady k auditu</li>
+                  {{range lines (index .Content "s1_solve_bullets")}}<li>{{.}}</li>
+                  {{end}}
                 </ul>
               </div>
 
               <div class="col-lg-6">
-                <h3 class="h5 fw-semibold">Co získáte</h3>
+                <h3 class="h5 fw-semibold">{{index .Content "s1_get_heading"}}</h3>
                 <ul class="mb-0">
-                  <li>přehled, kde dává AI smysl a kde ne</li>
-                  <li>bezpečné a kontrolované použití AI ve firmě</li>
-                  <li>splnění legislativních požadavků ČR a AI Actu</li>
-                  <li>srozumitelné materiály a doporučení, která lze hned zavést</li>
-                  <li>větší efektivitu a méně manuální práce tam, kde to opravdu funguje</li>
+                  {{range lines (index .Content "s1_get_bullets")}}<li>{{.}}</li>
+                  {{end}}
                 </ul>
               </div>
             </div>
@@ -92,35 +79,23 @@
       <section class="mb-5">
         <div class="card card-soft rounded-4">
           <div class="card-body p-4 p-lg-5">
-            <h2 class="fw-bold mb-3">Procesy, role & bezpečnost podle NIS2 a ZoKB</h2>
-            <p>
-              Požadavky NIS2 a nového Zákona o kybernetické bezpečnosti nemusí být složité. Pomohu vám zjistit,
-              co se vás opravdu týká, jak to máte splnit, a převést povinnosti do takových kroků,
-              které zapadnou do vašeho provozu bez zbytečných komplikací.
-            </p>
+            <h2 class="fw-bold mb-3">{{index .Content "s2_title"}}</h2>
+            <p>{{index .Content "s2_intro"}}</p>
 
             <div class="row g-4 mt-2">
               <div class="col-lg-6">
-                <h3 class="h5 fw-semibold">Co společně nastavíme</h3>
+                <h3 class="h5 fw-semibold">{{index .Content "s2_solve_heading"}}</h3>
                 <ul class="mb-0">
-                  <li>role a odpovědnosti (CISO, vedení, IT, projektové role, role dle ZoKB)</li>
-                  <li>funkční procesy, které lidé opravdu používají</li>
-                  <li>řízení rizik a jasná rozhodovací schémata</li>
-                  <li>incident management a reporting povinností</li>
-                  <li>bezpečnost dodavatelů a třetích stran</li>
-                  <li>srozumitelné směrnice a interní postupy</li>
-                  <li>přehledné priority – co udělat hned a co může počkat</li>
+                  {{range lines (index .Content "s2_solve_bullets")}}<li>{{.}}</li>
+                  {{end}}
                 </ul>
               </div>
 
               <div class="col-lg-6">
-                <h3 class="h5 fw-semibold">Co získáte</h3>
+                <h3 class="h5 fw-semibold">{{index .Content "s2_get_heading"}}</h3>
                 <ul class="mb-0">
-                  <li>praktické a funkční nastavení kybernetické bezpečnosti</li>
-                  <li>splnění požadavků NIS2 a ZoKB bez zbytečné zátěže</li>
-                  <li>jasné povinnosti pro všechny zúčastněné role</li>
-                  <li>méně chaosu a lepší koordinaci mezi IT, vedením a uživateli</li>
-                  <li>procesy, které firmu chrání, ale nebrzdí její běžné fungování</li>
+                  {{range lines (index .Content "s2_get_bullets")}}<li>{{.}}</li>
+                  {{end}}
                 </ul>
               </div>
             </div>
@@ -136,33 +111,23 @@
       <section>
         <div class="card card-soft rounded-4">
           <div class="card-body p-4 p-lg-5">
-            <h2 class="fw-bold mb-3">Školení & bezpečnostní kultura</h2>
-            <p>
-              Bezpečnost začíná u lidí. A když lidé rozumějí tomu „proč“ a vidí v tom smysl,
-              jednají bezpečně úplně jiným způsobem. Připravím školení a komunikaci, která je srozumitelná,
-              krátká a použitelná v každodenní praxi.
-            </p>
+            <h2 class="fw-bold mb-3">{{index .Content "s3_title"}}</h2>
+            <p>{{index .Content "s3_intro"}}</p>
 
             <div class="row g-4 mt-2">
               <div class="col-lg-6">
-                <h3 class="h5 fw-semibold">Co pro vás připravím</h3>
+                <h3 class="h5 fw-semibold">{{index .Content "s3_solve_heading"}}</h3>
                 <ul class="mb-0">
-                  <li>školení na míru prostředí vaší firmy (on-site i online)</li>
-                  <li>krátké formáty – prezentace, videa, microlearning</li>
-                  <li>interní články, newslettery a bezpečnostní kampaně</li>
-                  <li>používání AI ve firmě včetně bezpečnostních zásad</li>
-                  <li>postupy a návody, které zaměstnanci skutečně využijí</li>
+                  {{range lines (index .Content "s3_solve_bullets")}}<li>{{.}}</li>
+                  {{end}}
                 </ul>
               </div>
 
               <div class="col-lg-6">
-                <h3 class="h5 fw-semibold">Co získáte</h3>
+                <h3 class="h5 fw-semibold">{{index .Content "s3_get_heading"}}</h3>
                 <ul class="mb-0">
-                  <li>zaměstnance, kteří skutečně chápou rizika a správné chování</li>
-                  <li>splnění požadavku na proškolenost zaměstnanců i vedení</li>
-                  <li>snížení chyb způsobených nepozorností nebo neznalostí</li>
-                  <li>posílení bezpečnostní kultury bez zbytečné zátěže</li>
-                  <li>dlouhodobé materiály, které můžete používat opakovaně</li>
+                  {{range lines (index .Content "s3_get_bullets")}}<li>{{.}}</li>
+                  {{end}}
                 </ul>
               </div>
             </div>

@@ -14,8 +14,11 @@
   <nav class="navbar border-bottom">
     <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
       <span class="navbar-brand mb-0">Administrace</span>
-      <div class="d-flex align-items-center gap-3">
-        <a class="nav-link d-inline" href="{{.AdminPath}}">Texty stránek</a>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <a class="nav-link d-inline" href="{{.HomePath}}">Domů</a>
+        <a class="nav-link d-inline" href="{{.AboutPath}}">O mně</a>
+        <a class="nav-link d-inline" href="{{.ServicesPath}}">Služby</a>
+        <a class="nav-link d-inline" href="#">Aktuality</a>
         <form method="post" action="{{.LogoutPath}}" class="mb-0">
           <button class="btn btn-outline-primary btn-sm" type="submit">Odhlásit</button>
         </form>

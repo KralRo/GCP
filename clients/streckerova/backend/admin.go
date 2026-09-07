@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -33,10 +32,6 @@ type adminConfig struct {
 	PasswordHash string `firestore:"password_hash"`
 }
 
-type pageContent struct {
-	Body string `firestore:"body"`
-}
-
 type blogPost struct {
 	Title     string    `firestore:"title"`
 	Date      string    `firestore:"date"`
@@ -46,9 +41,6 @@ type blogPost struct {
 
 const sessionCookieName = "admin_session"
 const sessionTTL = 12 * time.Hour
-
-// Seed text shown on the homepage hero until the client edits it via /admin.
-const defaultHomeBody = "Nastavíme společně bezpečnost tak, aby fungovala v každodenním provozu, splňovala zákonné požadavky a přirozeně zapadla do toho, jak vaše firma opravdu funguje. Zaměříme se na praktické kroky vycházející z NIS2 a AI Actu, které zapadnou do vašeho běžného provozu a budou srozumitelné a použitelné pro každého."
 
 func (a *app) loadAdminConfig(ctx context.Context) (*adminConfig, error) {
 	doc, err := a.fs.Collection("admin").Doc("config").Get(ctx)
@@ -63,21 +55,6 @@ func (a *app) loadAdminConfig(ctx context.Context) (*adminConfig, error) {
 		return nil, err
 	}
 	return &cfg, nil
-}
-
-func (a *app) loadContent(ctx context.Context) (string, error) {
-	doc, err := a.fs.Collection("content").Doc("home").Get(ctx)
-	if status.Code(err) == codes.NotFound {
-		return defaultHomeBody, nil
-	}
-	if err != nil {
-		return "", err
-	}
-	var c pageContent
-	if err := doc.DataTo(&c); err != nil {
-		return "", err
-	}
-	return c.Body, nil
 }
 
 // path returns the right URL for an admin sub-page depending on which host
@@ -108,6 +85,8 @@ func (a *app) postEditPath(r *http.Request, id string) string {
 func (a *app) postDeletePath(r *http.Request, id string) string {
 	return a.path(r, "/posts/delete?id="+url.QueryEscape(id))
 }
+func (a *app) aboutEditPath(r *http.Request) string    { return a.path(r, "/about") }
+func (a *app) servicesEditPath(r *http.Request) string { return a.path(r, "/services") }
 
 func (a *app) signSession(username string, expiry int64) string {
 	payload := fmt.Sprintf("%s.%d", username, expiry)
@@ -171,27 +150,6 @@ func (a *app) requireAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		next(w, r)
-	}
-}
-
-func (a *app) handleIndex(w http.ResponseWriter, r *http.Request) {
-	body, err := a.loadContent(r.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err := tmplIndex.Execute(w, struct{ Body string }{body}); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-// handleStatic renders a template that needs no request-specific data - the
-// about/services pages, neither of which are Firestore-backed yet.
-func (a *app) handleStatic(t *template.Template) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, nil); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
 	}
 }
 
@@ -284,34 +242,6 @@ func (a *app) handleLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, a.loginPath(r), http.StatusSeeOther)
 }
 
-func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		body, err := a.loadContent(r.Context())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if err := tmplEdit.Execute(w, struct {
-			Body       string
-			Saved      bool
-			PostsPath  string
-			LogoutPath string
-		}{body, r.URL.Query().Get("saved") != "", a.postsPath(r), a.logoutPath(r)}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	case http.MethodPost:
-		_, err := a.fs.Collection("content").Doc("home").Set(r.Context(), pageContent{Body: r.FormValue("body")})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		http.Redirect(w, r, a.adminPath(r)+"?saved=1", http.StatusSeeOther)
-	default:
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-	}
-}
-
 // loadPosts returns blog posts newest-first. Firestore query results don't
 // include the document ID, so it's copied onto ID after DataTo.
 func (a *app) loadPosts(ctx context.Context) ([]blogPost, []string, error) {
@@ -365,11 +295,13 @@ func (a *app) handlePosts(w http.ResponseWriter, r *http.Request) {
 		rows[i] = postRow{p, a.postEditPath(r, ids[i]), a.postDeletePath(r, ids[i])}
 	}
 	if err := tmplPosts.Execute(w, struct {
-		Posts      []postRow
-		NewPath    string
-		AdminPath  string
-		LogoutPath string
-	}{rows, a.postsNewPath(r), a.adminPath(r), a.logoutPath(r)}); err != nil {
+		Posts        []postRow
+		NewPath      string
+		HomePath     string
+		AboutPath    string
+		ServicesPath string
+		LogoutPath   string
+	}{rows, a.postsNewPath(r), a.adminPath(r), a.aboutEditPath(r), a.servicesEditPath(r), a.logoutPath(r)}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
