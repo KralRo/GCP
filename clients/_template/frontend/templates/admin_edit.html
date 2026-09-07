@@ -8,11 +8,11 @@
 <body>
   <h1>Editace obsahu</h1>
   {{if .Saved}}<p class="success">Uloženo.</p>{{end}}
-  <form method="post" action="/admin">
+  <form method="post">
     <textarea name="body" rows="12" cols="60">{{.Body}}</textarea>
     <button type="submit">Uložit</button>
   </form>
-  <form method="post" action="/admin/logout">
+  <form method="post" action="{{.LogoutPath}}">
     <button type="submit">Odhlásit</button>
   </form>
 </body>

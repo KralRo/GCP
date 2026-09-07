@@ -8,7 +8,7 @@
 <body>
   <h1>Přihlášení</h1>
   {{if .Error}}<p class="error">Špatné jméno nebo heslo.</p>{{end}}
-  <form method="post" action="/admin/login">
+  <form method="post" action="{{.LoginPath}}">
     <label>Jméno <input type="text" name="username" required autofocus></label>
     <label>Heslo <input type="password" name="password" required></label>
     <button type="submit">Přihlásit</button>

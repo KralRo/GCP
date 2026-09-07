@@ -7,7 +7,7 @@
 </head>
 <body>
   <h1>První spuštění – vytvoř admin účet</h1>
-  <form method="post" action="/admin/setup">
+  <form method="post" action="{{.SetupPath}}">
     <label>Jméno <input type="text" name="username" required autofocus></label>
     <label>Heslo <input type="password" name="password" required minlength="8"></label>
     <button type="submit">Vytvořit účet</button>

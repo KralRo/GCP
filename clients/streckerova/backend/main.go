@@ -14,9 +14,12 @@ var (
 	tmplIndex    = template.Must(template.ParseFiles("frontend/templates/index.html"))
 	tmplAbout    = template.Must(template.ParseFiles("frontend/templates/about.html"))
 	tmplServices = template.Must(template.ParseFiles("frontend/templates/services.html"))
+	tmplBlog     = template.Must(template.ParseFiles("frontend/templates/blog.html"))
 	tmplLogin    = template.Must(template.ParseFiles("frontend/templates/admin_login.html"))
 	tmplSetup    = template.Must(template.ParseFiles("frontend/templates/admin_setup.html"))
 	tmplEdit     = template.Must(template.ParseFiles("frontend/templates/admin_edit.html"))
+	tmplPosts    = template.Must(template.ParseFiles("frontend/templates/admin_posts.html"))
+	tmplPostEdit = template.Must(template.ParseFiles("frontend/templates/admin_post_edit.html"))
 )
 
 func main() {
@@ -53,15 +56,17 @@ func main() {
 	mux.HandleFunc("/", app.handleIndex)
 	mux.HandleFunc("/about", app.handleStatic(tmplAbout))
 	mux.HandleFunc("/services", app.handleStatic(tmplServices))
-	// /blog intentionally not registered - blog.html is still a stub with
-	// placeholder posts ("DOPLNIT DATUM"); re-add the route once it has real
-	// content. Template file left in place for that.
+	mux.HandleFunc("/blog", app.handleBlog)
 	mux.HandleFunc("/contact", app.handleContact)
 
 	mux.HandleFunc("/admin/login", app.handleLoginPage)
 	mux.HandleFunc("/admin/setup", app.handleSetup)
 	mux.HandleFunc("/admin/logout", app.handleLogout)
 	mux.HandleFunc("/admin", app.requireAuth(app.handleAdmin))
+	mux.HandleFunc("/admin/posts", app.requireAuth(app.handlePosts))
+	mux.HandleFunc("/admin/posts/new", app.requireAuth(app.handlePostForm))
+	mux.HandleFunc("/admin/posts/edit", app.requireAuth(app.handlePostForm))
+	mux.HandleFunc("/admin/posts/delete", app.requireAuth(app.handlePostDelete))
 
 	// Admin panel also reachable at its own subdomain root (e.g.
 	// admin.streckerova.kralroman.org/) instead of the /admin path above.
@@ -72,6 +77,10 @@ func main() {
 		mux.HandleFunc(app.adminHost+"/setup", app.handleSetup)
 		mux.HandleFunc(app.adminHost+"/logout", app.handleLogout)
 		mux.HandleFunc(app.adminHost+"/", app.requireAuth(app.handleAdmin))
+		mux.HandleFunc(app.adminHost+"/posts", app.requireAuth(app.handlePosts))
+		mux.HandleFunc(app.adminHost+"/posts/new", app.requireAuth(app.handlePostForm))
+		mux.HandleFunc(app.adminHost+"/posts/edit", app.requireAuth(app.handlePostForm))
+		mux.HandleFunc(app.adminHost+"/posts/delete", app.requireAuth(app.handlePostDelete))
 	}
 
 	log.Printf("listening on :%s", port)

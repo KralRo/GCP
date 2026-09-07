@@ -67,22 +67,24 @@ func (a *app) loadContent(ctx context.Context) (string, error) {
 	return c.Body, nil
 }
 
-// loginPath and adminPath return the right URL depending on which host the
-// request came in on - the main site's /admin/* path, or the dedicated
-// adminHost's root, when that's configured and matches the request.
-func (a *app) loginPath(r *http.Request) string {
+// path returns the right URL for an admin sub-page depending on which host
+// the request came in on - the main site's /admin/<suffix> path, or the
+// dedicated adminHost's /<suffix> root, when that's configured and matches
+// the request. suffix must be empty or start with "/".
+func (a *app) path(r *http.Request, suffix string) string {
 	if a.adminHost != "" && r.Host == a.adminHost {
-		return "/login"
+		if suffix == "" {
+			return "/"
+		}
+		return suffix
 	}
-	return "/admin/login"
+	return "/admin" + suffix
 }
 
-func (a *app) adminPath(r *http.Request) string {
-	if a.adminHost != "" && r.Host == a.adminHost {
-		return "/"
-	}
-	return "/admin"
-}
+func (a *app) loginPath(r *http.Request) string  { return a.path(r, "/login") }
+func (a *app) setupPath(r *http.Request) string  { return a.path(r, "/setup") }
+func (a *app) logoutPath(r *http.Request) string { return a.path(r, "/logout") }
+func (a *app) adminPath(r *http.Request) string  { return a.path(r, "") }
 
 func (a *app) signSession(username string, expiry int64) string {
 	payload := fmt.Sprintf("%s.%d", username, expiry)
@@ -167,7 +169,7 @@ func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if cfg == nil {
-		if err := tmplSetup.Execute(w, nil); err != nil {
+		if err := tmplSetup.Execute(w, struct{ SetupPath string }{a.setupPath(r)}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
@@ -175,7 +177,10 @@ func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if err := tmplLogin.Execute(w, struct{ Error bool }{r.URL.Query().Get("error") != ""}); err != nil {
+		if err := tmplLogin.Execute(w, struct {
+			Error     bool
+			LoginPath string
+		}{r.URL.Query().Get("error") != "", a.loginPath(r)}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case http.MethodPost:
@@ -244,9 +249,10 @@ func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := tmplEdit.Execute(w, struct {
-			Body  string
-			Saved bool
-		}{body, r.URL.Query().Get("saved") != ""}); err != nil {
+			Body       string
+			Saved      bool
+			LogoutPath string
+		}{body, r.URL.Query().Get("saved") != "", a.logoutPath(r)}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case http.MethodPost:
