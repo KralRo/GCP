@@ -43,16 +43,43 @@ resource "google_project_iam_member" "runtime_datastore" {
 # scoped to just this SA, not project-wide serviceAccountUser.
 resource "google_service_account_iam_member" "deployer_can_act_as_runtime" {
   service_account_id = google_service_account.runtime.name
-  role                = "roles/iam.serviceAccountUser"
-  member              = "serviceAccount:${var.ci_deployer_service_account}"
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${var.ci_deployer_service_account}"
 }
 
-# Signs the admin session cookie. Stored as a plain Cloud Run env var (visible in
-# Terraform state) rather than Secret Manager - acceptable for a single-editor admin
-# panel today; revisit if that changes.
+resource "google_project_service" "secretmanager" {
+  project            = var.project_id
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
+# Signs the admin session cookie. Value lives only in Secret Manager - Cloud Run
+# reads it at container start via secret_env_vars, never as a plain env var value.
 resource "random_password" "session_secret" {
   length  = 32
   special = false
+}
+
+resource "google_secret_manager_secret" "session_secret" {
+  project   = var.project_id
+  secret_id = "svc-${var.env}-session-secret"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "session_secret" {
+  secret      = google_secret_manager_secret.session_secret.id
+  secret_data = random_password.session_secret.result
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_can_read_session_secret" {
+  secret_id = google_secret_manager_secret.session_secret.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
 }
 
 module "artifact_registry" {
@@ -75,13 +102,17 @@ module "cloud_run" {
   env_vars = {
     FIRESTORE_PROJECT_ID  = var.project_id
     FIRESTORE_DATABASE_ID = local.firestore_database_id
-    SESSION_SECRET        = random_password.session_secret.result
     ADMIN_HOST            = var.admin_host
+  }
+
+  secret_env_vars = {
+    SESSION_SECRET = { secret = google_secret_manager_secret.session_secret.secret_id }
   }
 
   depends_on = [
     google_project_iam_member.runtime_datastore,
     google_service_account_iam_member.deployer_can_act_as_runtime,
+    google_secret_manager_secret_iam_member.runtime_can_read_session_secret,
   ]
 }
 

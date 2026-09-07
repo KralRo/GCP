@@ -21,7 +21,16 @@ variable "image" {
 
 variable "env_vars" {
   type        = map(string)
-  description = "Environment variables passed to the container"
+  description = "Environment variables passed to the container as plain values"
+  default     = {}
+}
+
+variable "secret_env_vars" {
+  type = map(object({
+    secret  = string
+    version = optional(string, "latest")
+  }))
+  description = "Environment variables sourced from a Secret Manager secret version instead of a plain value. `secret` is the Secret Manager secret ID (or full resource name); the runtime service account must already have roles/secretmanager.secretAccessor on it."
   default     = {}
 }
 
