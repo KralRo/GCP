@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>{{if .IsNew}}Nová aktualita{{else}}Upravit aktualitu{{end}} – Admin</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>{{if .IsNew}}Nová aktualita{{else}}Upravit aktualitu{{end}}</h1>
+  <form method="post">
+    <label>Datum <input type="text" name="date" value="{{.Date}}" placeholder="např. 2. 9. 2026" required></label>
+    <label>Nadpis <input type="text" name="title" value="{{.Title}}" required></label>
+    <label>Text <textarea name="body" rows="10" cols="60">{{.Body}}</textarea></label>
+    <button type="submit">Uložit</button>
+  </form>
+  <p><a href="{{.PostsPath}}">Zpět na seznam</a></p>
+</body>
+</html>

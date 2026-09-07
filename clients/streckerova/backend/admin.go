@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,6 +35,13 @@ type adminConfig struct {
 
 type pageContent struct {
 	Body string `firestore:"body"`
+}
+
+type blogPost struct {
+	Title     string    `firestore:"title"`
+	Date      string    `firestore:"date"`
+	Body      string    `firestore:"body"`
+	CreatedAt time.Time `firestore:"created_at"`
 }
 
 const sessionCookieName = "admin_session"
@@ -71,21 +80,33 @@ func (a *app) loadContent(ctx context.Context) (string, error) {
 	return c.Body, nil
 }
 
-// loginPath and adminPath return the right URL depending on which host the
-// request came in on - the main site's /admin/* path, or the dedicated
-// adminHost's root, when that's configured and matches the request.
-func (a *app) loginPath(r *http.Request) string {
+// path returns the right URL for an admin sub-page depending on which host
+// the request came in on - the main site's /admin/<suffix> path, or the
+// dedicated adminHost's /<suffix> root, when that's configured and matches
+// the request. suffix must be empty or start with "/".
+func (a *app) path(r *http.Request, suffix string) string {
 	if a.adminHost != "" && r.Host == a.adminHost {
-		return "/login"
+		if suffix == "" {
+			return "/"
+		}
+		return suffix
 	}
-	return "/admin/login"
+	return "/admin" + suffix
 }
 
-func (a *app) adminPath(r *http.Request) string {
-	if a.adminHost != "" && r.Host == a.adminHost {
-		return "/"
-	}
-	return "/admin"
+func (a *app) loginPath(r *http.Request) string  { return a.path(r, "/login") }
+func (a *app) setupPath(r *http.Request) string  { return a.path(r, "/setup") }
+func (a *app) logoutPath(r *http.Request) string { return a.path(r, "/logout") }
+func (a *app) adminPath(r *http.Request) string  { return a.path(r, "") }
+func (a *app) postsPath(r *http.Request) string  { return a.path(r, "/posts") }
+func (a *app) postsNewPath(r *http.Request) string {
+	return a.path(r, "/posts/new")
+}
+func (a *app) postEditPath(r *http.Request, id string) string {
+	return a.path(r, "/posts/edit?id="+url.QueryEscape(id))
+}
+func (a *app) postDeletePath(r *http.Request, id string) string {
+	return a.path(r, "/posts/delete?id="+url.QueryEscape(id))
 }
 
 func (a *app) signSession(username string, expiry int64) string {
@@ -192,7 +213,7 @@ func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if cfg == nil {
-		if err := tmplSetup.Execute(w, nil); err != nil {
+		if err := tmplSetup.Execute(w, struct{ SetupPath string }{a.setupPath(r)}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
@@ -200,7 +221,10 @@ func (a *app) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if err := tmplLogin.Execute(w, struct{ Error bool }{r.URL.Query().Get("error") != ""}); err != nil {
+		if err := tmplLogin.Execute(w, struct {
+			Error     bool
+			LoginPath string
+		}{r.URL.Query().Get("error") != "", a.loginPath(r)}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case http.MethodPost:
@@ -269,9 +293,11 @@ func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := tmplEdit.Execute(w, struct {
-			Body  string
-			Saved bool
-		}{body, r.URL.Query().Get("saved") != ""}); err != nil {
+			Body       string
+			Saved      bool
+			PostsPath  string
+			LogoutPath string
+		}{body, r.URL.Query().Get("saved") != "", a.postsPath(r), a.logoutPath(r)}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case http.MethodPost:
@@ -284,4 +310,147 @@ func (a *app) handleAdmin(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// loadPosts returns blog posts newest-first. Firestore query results don't
+// include the document ID, so it's copied onto ID after DataTo.
+func (a *app) loadPosts(ctx context.Context) ([]blogPost, []string, error) {
+	iter := a.fs.Collection("posts").OrderBy("created_at", firestore.Desc).Documents(ctx)
+	defer iter.Stop()
+	var posts []blogPost
+	var ids []string
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+		var p blogPost
+		if err := doc.DataTo(&p); err != nil {
+			return nil, nil, err
+		}
+		posts = append(posts, p)
+		ids = append(ids, doc.Ref.ID)
+	}
+	return posts, ids, nil
+}
+
+func (a *app) handleBlog(w http.ResponseWriter, r *http.Request) {
+	posts, _, err := a.loadPosts(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := tmplBlog.Execute(w, struct{ Posts []blogPost }{posts}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+type postRow struct {
+	blogPost
+	EditPath   string
+	DeletePath string
+}
+
+func (a *app) handlePosts(w http.ResponseWriter, r *http.Request) {
+	posts, ids, err := a.loadPosts(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	rows := make([]postRow, len(posts))
+	for i, p := range posts {
+		rows[i] = postRow{p, a.postEditPath(r, ids[i]), a.postDeletePath(r, ids[i])}
+	}
+	if err := tmplPosts.Execute(w, struct {
+		Posts      []postRow
+		NewPath    string
+		AdminPath  string
+		LogoutPath string
+	}{rows, a.postsNewPath(r), a.adminPath(r), a.logoutPath(r)}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// handlePostForm serves both /posts/new (no id) and /posts/edit?id=... - the
+// same form self-submits back to whichever of the two it was loaded from.
+func (a *app) handlePostForm(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+
+	switch r.Method {
+	case http.MethodGet:
+		post := blogPost{}
+		if id != "" {
+			doc, err := a.fs.Collection("posts").Doc(id).Get(r.Context())
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if err := doc.DataTo(&post); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		if err := tmplPostEdit.Execute(w, struct {
+			blogPost
+			IsNew     bool
+			PostsPath string
+		}{post, id == "", a.postsPath(r)}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	case http.MethodPost:
+		post := blogPost{
+			Title: r.FormValue("title"),
+			Date:  r.FormValue("date"),
+			Body:  r.FormValue("body"),
+		}
+		if id != "" {
+			// Preserve the original CreatedAt so edits don't reorder the list.
+			existing, err := a.fs.Collection("posts").Doc(id).Get(r.Context())
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			var current blogPost
+			if err := existing.DataTo(&current); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			post.CreatedAt = current.CreatedAt
+			_, err = a.fs.Collection("posts").Doc(id).Set(r.Context(), post)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			post.CreatedAt = time.Now().UTC()
+			_, _, err := a.fs.Collection("posts").Add(r.Context(), post)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		http.Redirect(w, r, a.postsPath(r), http.StatusSeeOther)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (a *app) handlePostDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "missing id", http.StatusBadRequest)
+		return
+	}
+	if _, err := a.fs.Collection("posts").Doc(id).Delete(r.Context()); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, a.postsPath(r), http.StatusSeeOther)
 }

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>Aktuality – Admin</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>Aktuality</h1>
+  <p><a href="{{.AdminPath}}">Texty stránek</a></p>
+  <p><a href="{{.NewPath}}">+ Přidat aktualitu</a></p>
+
+  {{if not .Posts}}
+    <p>Zatím žádné aktuality.</p>
+  {{end}}
+
+  {{range .Posts}}
+  <div class="card-soft" style="padding:1rem;margin-bottom:1rem;">
+    <div style="opacity:.7">{{.Date}}</div>
+    <strong>{{.Title}}</strong>
+    <p><a href="{{.EditPath}}">Upravit</a></p>
+    <form method="post" action="{{.DeletePath}}" onsubmit="return confirm('Opravdu smazat tuto aktualitu?')" style="display:inline">
+      <button type="submit">Smazat</button>
+    </form>
+  </div>
+  {{end}}
+
+  <form method="post" action="{{.LogoutPath}}">
+    <button type="submit">Odhlásit</button>
+  </form>
+</body>
+</html>
